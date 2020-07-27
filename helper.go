@@ -10,9 +10,9 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"log"
 	"net"
 	"net/http"
-	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -99,7 +99,7 @@ func GetIPAndPort(r *http.Request) (string, string) {
 	return clientIP, clientPort
 }
 
-func NewLogger(name string) *zap.Logger {
+func NewLogger(folder, name string) *zap.Logger {
 	encoderCfg := zapcore.EncoderConfig{
 		MessageKey:     "msg",
 		LevelKey:       "level",
@@ -112,8 +112,17 @@ func NewLogger(name string) *zap.Logger {
 			encoder.AppendString(name + ":" + time.Now().String() + ":" + caller.File + ":" + strconv.FormatInt(int64(caller.Line), 10))
 		},
 	}
-	core := zapcore.NewCore(zapcore.NewJSONEncoder(encoderCfg), os.Stdout, zap.DebugLevel)
-	return zap.New(core, zap.AddCaller())
+	cfg := zap.NewProductionConfig()
+	cfg.EncoderConfig = encoderCfg
+	cfg.OutputPaths = []string{
+		folder + "/" + name + ".log",
+	}
+	logger, err := cfg.Build(zap.AddCaller())
+
+	if err != nil {
+		log.Println(err)
+	}
+	return logger
 }
 
 func GetMD5Hash(text string) string {
