@@ -14,7 +14,6 @@ import (
 	"net"
 	"net/http"
 	"os/exec"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -99,7 +98,11 @@ func GetIPAndPort(r *http.Request) (string, string) {
 	return clientIP, clientPort
 }
 
-func NewLogger(folder, name string) *zap.Logger {
+func NewLogger(folder, fileName string) *zap.Logger {
+	return NewLoggerWithFlag(folder, fileName, "")
+}
+
+func NewLoggerWithFlag(folder, fileName, name string) *zap.Logger {
 	encoderCfg := zapcore.EncoderConfig{
 		MessageKey:     "msg",
 		LevelKey:       "level",
@@ -109,13 +112,18 @@ func NewLogger(folder, name string) *zap.Logger {
 		EncodeTime:     zapcore.ISO8601TimeEncoder,
 		EncodeDuration: zapcore.StringDurationEncoder,
 		EncodeCaller: func(caller zapcore.EntryCaller, encoder zapcore.PrimitiveArrayEncoder) {
-			encoder.AppendString(name + ":" + time.Now().String() + ":" + caller.File + ":" + strconv.FormatInt(int64(caller.Line), 10))
+			if name != "" {
+				encoder.AppendString(name)
+			}
+			encoder.AppendString(time.Now().String())
+			encoder.AppendString(caller.File)
+			encoder.AppendInt(caller.Line)
 		},
 	}
 	cfg := zap.NewProductionConfig()
 	cfg.EncoderConfig = encoderCfg
 	cfg.OutputPaths = []string{
-		folder + "/" + name + ".log",
+		folder + "/" + fileName + ".log",
 	}
 	logger, err := cfg.Build(zap.AddCaller())
 
