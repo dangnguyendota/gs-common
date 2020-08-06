@@ -98,11 +98,11 @@ func GetIPAndPort(r *http.Request) (string, string) {
 	return clientIP, clientPort
 }
 
-func NewLogger(folder, fileName string) *zap.Logger {
-	return NewLoggerWithFlag(folder, fileName, "")
+func NewLogger(file string) *zap.Logger {
+	return NewLoggerWithFlag(file, "")
 }
 
-func NewLoggerWithFlag(folder, fileName, name string) *zap.Logger {
+func NewLoggerWithFlag(file, uniqueName string) *zap.Logger {
 	encoderCfg := zapcore.EncoderConfig{
 		MessageKey:     "msg",
 		LevelKey:       "level",
@@ -112,8 +112,8 @@ func NewLoggerWithFlag(folder, fileName, name string) *zap.Logger {
 		EncodeTime:     zapcore.ISO8601TimeEncoder,
 		EncodeDuration: zapcore.StringDurationEncoder,
 		EncodeCaller: func(caller zapcore.EntryCaller, encoder zapcore.PrimitiveArrayEncoder) {
-			if name != "" {
-				encoder.AppendString(name)
+			if uniqueName != "" {
+				encoder.AppendString(uniqueName)
 			}
 			encoder.AppendString(time.Now().String())
 			encoder.AppendString(caller.File)
@@ -123,7 +123,7 @@ func NewLoggerWithFlag(folder, fileName, name string) *zap.Logger {
 	cfg := zap.NewProductionConfig()
 	cfg.EncoderConfig = encoderCfg
 	cfg.OutputPaths = []string{
-		folder + "/" + fileName + ".log",
+		file,
 	}
 	logger, err := cfg.Build(zap.AddCaller())
 
