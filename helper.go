@@ -98,11 +98,7 @@ func GetIPAndPort(r *http.Request) (string, string) {
 	return clientIP, clientPort
 }
 
-func NewLogger(file string) *zap.Logger {
-	return NewLoggerWithFlag(file, "")
-}
-
-func NewLoggerWithFlag(file, uniqueName string) *zap.Logger {
+func NewLogger(file, uniqueName string) *zap.Logger {
 	encoderCfg := zapcore.EncoderConfig{
 		MessageKey:     "msg",
 		LevelKey:       "level",
