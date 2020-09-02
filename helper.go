@@ -21,7 +21,7 @@ import (
 // token contains user information
 type UserTokenClaims struct {
 	ExpiresAt int64
-	User      gsi.User
+	User      api.User
 }
 
 func (u *UserTokenClaims) Valid() error {
@@ -55,7 +55,7 @@ func ParseToken(tokenString string, secret string) (*UserTokenClaims, bool) {
 	return claims, true
 }
 
-func GenerateToken(user gsi.User, expiredTime int64, secret string) (string, error) {
+func GenerateToken(user api.User, expiredTime int64, secret string) (string, error) {
 	expiredAt := time.Now().UTC().Add(time.Duration(expiredTime) * time.Second).Unix()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &UserTokenClaims{
