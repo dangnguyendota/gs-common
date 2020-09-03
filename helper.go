@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/dangnguyendota/gs-interface"
+	"github.com/dangnguyendota/game-server-api"
 	"github.com/dgrijalva/jwt-go"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
