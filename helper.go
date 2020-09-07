@@ -13,7 +13,9 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -98,7 +100,12 @@ func GetIPAndPort(r *http.Request) (string, string) {
 	return clientIP, clientPort
 }
 
-func NewLogger(file, uniqueName string) *zap.Logger {
+func NewLogger(file, name string) *zap.Logger {
+	f, err := CreateFile(file)
+	if err != nil {
+		log.Println(err)
+	}
+	_ = f.Close()
 	encoderCfg := zapcore.EncoderConfig{
 		MessageKey:     "msg",
 		LevelKey:       "level",
@@ -108,12 +115,12 @@ func NewLogger(file, uniqueName string) *zap.Logger {
 		EncodeTime:     zapcore.ISO8601TimeEncoder,
 		EncodeDuration: zapcore.StringDurationEncoder,
 		EncodeCaller: func(caller zapcore.EntryCaller, encoder zapcore.PrimitiveArrayEncoder) {
-			if uniqueName != "" {
-				encoder.AppendString(uniqueName)
+			if name != "" {
+				encoder.AppendString(fmt.Sprintf("{\"name\":\"%s\"}", name))
 			}
-			encoder.AppendString(time.Now().String())
-			encoder.AppendString(caller.File)
-			encoder.AppendInt(caller.Line)
+			encoder.AppendString(fmt.Sprintf("{\"time\":\"%s\"}", time.Now().Local().String()))
+			encoder.AppendString(fmt.Sprintf("{\"file\":\"%s\"}", caller.File))
+			encoder.AppendString(fmt.Sprintf("{\"line\":\"%d\"}", caller.Line))
 		},
 	}
 	cfg := zap.NewProductionConfig()
@@ -142,4 +149,11 @@ func ExecuteCommand(name string, arg ...string) (string, error) {
 		return "", err
 	}
 	return string(stdout), nil
+}
+
+func CreateFile(name string) (*os.File, error) {
+	if err := os.MkdirAll(filepath.Dir(name), 0770); err != nil {
+		return nil, err
+	}
+	return os.Create(name)
 }
