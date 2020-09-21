@@ -23,10 +23,12 @@ func NewThreadPool(maxWorkers, maxQueue int) *ThreadPool {
 	return threadPool
 }
 
-func (threadPool *ThreadPool) Queue(f func() error) {
+func (threadPool *ThreadPool) Queue(f func() error) bool {
 	select {
 	case threadPool.dispatcher.jobQueue <- f:
+		return true
 	default:
+		return false
 	}
 }
 
